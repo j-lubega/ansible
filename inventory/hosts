@@ -1,11 +1,6 @@
-# Jimmy Lubega's Proxmox Local Ubuntu VMs (4)
+# Ansible Invetory file
+[linuxservers]
+host1
+host2
+host3
 
-[positvms]
-wb-node100
-cn-node101
-pm-node102
-
-[kubernetesvm]
-#K8s-node103
-
-# Jimmy Lubega's GCP Cloud VMs
