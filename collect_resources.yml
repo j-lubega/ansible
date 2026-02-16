@@ -1,0 +1,25 @@
+---
+- name: Collect System Resource Usage
+  hosts: all
+  gather_facts: yes
+  serial: 1
+  tasks:
+    - name: Prepare resource data string
+      set_fact:
+        resource_line: |
+          --------------------------------------------------
+          HOSTNAME: {{ ansible_hostname }}
+          KERNEL:   {{ ansible_kernel }}
+          CPUS:     {{ ansible_processor_vcpus }}
+          RAM:      {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+          DISK:     {{ ansible_mounts[0].size_total | human_readable }} (Total on /)
+          --------------------------------------------------
+
+    - name: Save report to local file
+      delegate_to: localhost
+      run_once: false
+      lineinfile:
+        path: "{{ playbook_dir }}/resource-results.txt"
+        line: "{{ resource_line }}"
+        create: yes
+        insertafter: EOF

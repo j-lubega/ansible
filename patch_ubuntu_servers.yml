@@ -1,0 +1,36 @@
+---
+- name: Rolling Patch and Reboot
+  hosts: all
+  become: yes
+  serial: 1  # Processes one server at a time from start to finish
+  gather_facts: yes
+
+  tasks:
+    - name: Update all packages (Ubuntu/Debian)
+      apt:
+        upgrade: dist
+        update_cache: yes
+      register: apt_result
+
+    - name: Reboot the server if patches were applied
+      reboot:
+        reboot_timeout: 300
+        msg: "Rebooting M4-managed node after patching"
+      when: apt_result.changed
+
+    - name: Refresh facts after reboot
+      setup:
+      when: apt_result.changed
+
+    - name: Save patching results to local file
+      delegate_to: localhost
+      become: no
+      lineinfile:
+        path: "{{ playbook_dir }}/patch-results.txt"
+        line: >
+          TIME: {{ ansible_date_time.iso8601 }} |
+          SERVER: {{ inventory_hostname }} | 
+          STATUS: {{ 'UPDATED' if apt_result.changed else 'STAYED CURRENT' }} | 
+          KERNEL: {{ ansible_facts['kernel'] }}
+        create: yes
+        insertafter: EOF
